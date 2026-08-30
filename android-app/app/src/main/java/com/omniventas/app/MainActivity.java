@@ -17,6 +17,7 @@ import com.omniventas.app.ui.InventarioFragment;
 import com.omniventas.app.ui.UsuarioFragment;
 import com.omniventas.app.utils.SessionManager;
 import com.omniventas.app.utils.TelegramLogger;
+import com.omniventas.app.utils.TutorialManager;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private SessionManager sessionManager;
     private TelegramLogger logger;
     private LinearLayout llOfflineIndicator;
+    private TutorialManager tutorialManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +77,25 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(this, "Error al cargar el dashboard", Toast.LENGTH_SHORT).show();
                 }
             }
+
+            // 🔥 INTEGRAR TUTORIAL DE BIENVENIDA
+            ViewGroup rootView = findViewById(android.R.id.content);
+            tutorialManager = new TutorialManager(this, rootView);
+            tutorialManager.setCallback(new TutorialManager.TutorialCallback() {
+                @Override
+                public void onTutorialComplete() {
+                    logger.success("Tutorial completado por vendedor");
+                    // Puedes agregar lógica adicional aquí
+                }
+
+                @Override
+                public void onTutorialSkip() {
+                    logger.info("Tutorial omitido por vendedor");
+                }
+            });
+            
+            // Mostrar tutorial solo si es primera vez
+            tutorialManager.showTutorialIfNeeded();
 
             SyncManager.scheduleSync(this);
             Log.d(TAG, "✅ onCreate completado correctamente");
