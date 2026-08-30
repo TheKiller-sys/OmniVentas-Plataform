@@ -53,15 +53,16 @@
                                 android:layout_gravity="center" />
                         </FrameLayout>
 
+                        <!-- 🔥 CORREGIDO: Texto horizontal y completo -->
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="OMNIVENTAS"
-                            android:textSize="14sp"
+                            android:textSize="18sp"
                             android:textStyle="bold"
-                            android:textColor="@color/white_alpha_80"
-                            android:letterSpacing="2"
+                            android:textColor="@color/white"
+                            android:letterSpacing="0.3"
                             android:layout_marginStart="12dp" />
 
                         <View
