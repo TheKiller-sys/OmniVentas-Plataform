@@ -18,40 +18,99 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- HEADER CENTRADO -->
-            <LinearLayout
+            <!-- 🔥 NUEVO: HEADER CON DISEÑO PREMIUM -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center_horizontal"
-                android:layout_marginBottom="20dp">
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@color/primary"
+                android:layout_marginBottom="16dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Panel de Control"
-                    android:textSize="28sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/dark"
-                    android:fontFamily="sans-serif"
-                    android:letterSpacing="0.5" />
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-                <View
-                    android:layout_width="60dp"
-                    android:layout_height="3dp"
-                    android:background="@color/primary"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="8dp" />
+                    <!-- Logo e icono -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
 
-                <TextView
-                    android:id="@+id/tv_greeting"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Buenos días, Vendedor"
-                    android:textSize="16sp"
-                    android:textColor="@color/gray"
-                    android:fontFamily="sans-serif" />
-            </LinearLayout>
+                        <FrameLayout
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_avatar_white">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_dashboard"
+                                android:tint="@color/white"
+                                android:layout_gravity="center" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="OMNIVENTAS"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/white_alpha_80"
+                            android:letterSpacing="2"
+                            android:layout_marginStart="12dp" />
+
+                        <View
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:background="@drawable/bg_pulse"
+                            android:layout_marginEnd="8dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="EN VIVO"
+                            android:textSize="10sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"
+                            android:letterSpacing="1" />
+                    </LinearLayout>
+
+                    <!-- Título principal -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Panel de Control"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"
+                        android:fontFamily="sans-serif-black"
+                        android:layout_marginTop="12dp" />
+
+                    <!-- Saludo -->
+                    <TextView
+                        android:id="@+id/tv_greeting"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Buenos días, Vendedor"
+                        android:textSize="15sp"
+                        android:textColor="@color/white_alpha_80"
+                        android:fontFamily="sans-serif"
+                        android:layout_marginTop="4dp" />
+
+                    <!-- Línea decorativa -->
+                    <View
+                        android:layout_width="60dp"
+                        android:layout_height="3dp"
+                        android:background="@color/white"
+                        android:layout_marginTop="12dp"
+                        android:alpha="0.3" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Estado Offline -->
             <TextView
@@ -97,8 +156,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="En Vivo"
-                            android:textColor="@color/white"
+                            android:text="Ingresos de Hoy"
+                            android:textColor="@color/white_alpha_80"
                             android:textSize="14sp"
                             android:fontFamily="sans-serif-medium" />
 
@@ -110,7 +169,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Hoy"
+                            android:text="Actualizado"
                             android:textColor="@color/white_alpha_80"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -121,7 +180,7 @@
                         android:layout_height="wrap_content"
                         android:text="$0"
                         android:textColor="@color/white"
-                        android:textSize="36sp"
+                        android:textSize="40sp"
                         android:textStyle="bold"
                         android:layout_marginTop="8dp" />
                 </LinearLayout>
@@ -153,7 +212,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Pedidos Pendientes"
+                            android:text="Stock Bajo"
                             android:textSize="12sp"
                             android:textColor="@color/gray"
                             android:fontFamily="sans-serif" />
@@ -171,7 +230,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Pendientes"
+                            android:text="Productos"
                             android:textSize="11sp"
                             android:textColor="@color/gray" />
                     </LinearLayout>
@@ -254,14 +313,12 @@
                     android:padding="4dp"
                     android:background="@color/white">
 
-                    <!-- CÓDIGO CORREGIDO: Contenedor con fondo blanco -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:background="@color/white">
 
-                        <!-- RecyclerView para ventas -->
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/rv_ventas_diarias"
                             android:layout_width="match_parent"
@@ -270,7 +327,6 @@
                             android:divider="@null"
                             android:background="@color/white" />
 
-                        <!-- Paginación -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -312,7 +368,6 @@
                                 android:visibility="gone" />
                         </LinearLayout>
 
-                        <!-- Mensaje sin ventas -->
                         <TextView
                             android:id="@+id/tv_sin_ventas"
                             android:layout_width="match_parent"
