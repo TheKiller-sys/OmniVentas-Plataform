@@ -7,62 +7,80 @@
     android:background="@color/white"
     android:padding="16dp">
 
-    <!-- HEADER CENTRADO -->
-    <LinearLayout
+    <!-- 🔥 NUEVO: HEADER CON DISEÑO PREMIUM -->
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="@color/success"
         android:layout_marginBottom="16dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/inventario_titulo"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="@color/dark"
-            android:fontFamily="sans-serif"
-            android:letterSpacing="0.5" />
-
-        <View
-            android:layout_width="60dp"
-            android:layout_height="3dp"
-            android:background="@color/primary"
-            android:layout_marginTop="6dp" />
-
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="8dp">
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <FrameLayout
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_avatar_white">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_inventario"
+                        android:tint="@color/white"
+                        android:layout_gravity="center" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="OMNIVENTAS"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white_alpha_80"
+                    android:letterSpacing="2"
+                    android:layout_marginStart="12dp" />
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/tv_stats_products"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0 Productos"
-                android:textSize="14sp"
-                android:textColor="@color/gray" />
+                android:text="Inventario"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:fontFamily="sans-serif-black"
+                android:layout_marginTop="12dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=" · "
-                android:textSize="14sp"
-                android:textColor="@color/gray" />
+                android:text="Consulta y controla tu stock"
+                android:textSize="15sp"
+                android:textColor="@color/white_alpha_80"
+                android:layout_marginTop="4dp" />
 
-            <TextView
-                android:id="@+id/tv_updated_now"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Actualizado ahora"
-                android:textSize="12sp"
-                android:textColor="@color/success" />
+            <View
+                android:layout_width="60dp"
+                android:layout_height="3dp"
+                android:background="@color/white"
+                android:layout_marginTop="12dp"
+                android:alpha="0.3" />
         </LinearLayout>
-    </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
-    <!-- ✅ BÚSQUEDA ESTÉTICA IGUAL A LA DE VENTAS -->
+    <!-- BÚSQUEDA ESTÉTICA -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -105,6 +123,32 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Contador de productos -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:id="@+id/tv_stats_products"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0 Productos"
+            android:textSize="14sp"
+            android:textColor="@color/gray" />
+
+        <TextView
+            android:id="@+id/tv_updated_now"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Actualizado ahora"
+            android:textSize="12sp"
+            android:textColor="@color/success" />
+    </LinearLayout>
+
     <!-- Filtros por categoría (dinámicos) -->
     <HorizontalScrollView
         android:layout_width="match_parent"
@@ -134,7 +178,7 @@
         android:id="@+id/tv_inventario_vacio"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/inventario_vacio"
+        android:text="No hay productos en el inventario"
         android:textSize="14sp"
         android:textColor="@color/gray"
         android:gravity="center"
