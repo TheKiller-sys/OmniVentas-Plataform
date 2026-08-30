@@ -12,30 +12,78 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- HEADER CENTRADO -->
-        <LinearLayout
+        <!-- 🔥 NUEVO: HEADER CON DISEÑO PREMIUM (TODO AZUL) -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:layout_marginBottom="20dp">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="@color/primary"
+            android:layout_marginBottom="16dp">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/usuario_titulo"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:textColor="@color/dark"
-                android:fontFamily="sans-serif"
-                android:letterSpacing="0.5" />
+                android:orientation="vertical"
+                android:padding="20dp">
 
-            <View
-                android:layout_width="60dp"
-                android:layout_height="3dp"
-                android:background="@color/primary"
-                android:layout_marginTop="6dp" />
-        </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <FrameLayout
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_avatar_white">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_user"
+                            android:tint="@color/white"
+                            android:layout_gravity="center" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="OMNIVENTAS"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"
+                        android:letterSpacing="0.3"
+                        android:layout_marginStart="12dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mi Perfil"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:fontFamily="sans-serif-black"
+                    android:layout_marginTop="12dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Gestiona tu cuenta"
+                    android:textSize="15sp"
+                    android:textColor="@color/white_alpha_80"
+                    android:layout_marginTop="4dp" />
+
+                <View
+                    android:layout_width="60dp"
+                    android:layout_height="3dp"
+                    android:background="@color/white"
+                    android:layout_marginTop="12dp"
+                    android:alpha="0.3" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Tarjeta de Perfil MEJORADA -->
         <com.google.android.material.card.MaterialCardView
@@ -77,7 +125,7 @@
                             android:id="@+id/tv_vendor_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/usuario_vendedor"
+                            android:text="Vendedor"
                             android:textColor="@color/white"
                             android:textSize="20sp"
                             android:textStyle="bold" />
@@ -85,7 +133,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/usuario_top"
+                            android:text="Top Seller"
                             android:textColor="@color/white_alpha_80"
                             android:textSize="14sp" />
                     </LinearLayout>
@@ -122,7 +170,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/usuario_meta_mensual"
+                            android:text="Meta Mensual"
                             android:textColor="@color/white_alpha_80"
                             android:textSize="12sp" />
 
@@ -153,7 +201,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/usuario_logros"
+            android:text="Logros"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/dark"
@@ -191,7 +239,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/usuario_top_performer"
+                        android:text="TOP PERFORMER"
                         android:textSize="8sp"
                         android:textColor="@color/primary" />
                 </LinearLayout>
@@ -204,7 +252,7 @@
                 android:layout_marginHorizontal="6dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/warning_light">
+                app:cardBackgroundColor="@color/primary_light">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -218,14 +266,14 @@
                         android:text="HIGH"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        android:textColor="@color/warning" />
+                        android:textColor="@color/primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/usuario_high_converter"
+                        android:text="HIGH CONVERTER"
                         android:textSize="8sp"
-                        android:textColor="@color/warning" />
+                        android:textColor="@color/primary" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -236,7 +284,7 @@
                 android:layout_marginStart="6dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/success_light">
+                app:cardBackgroundColor="@color/primary_light">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -250,14 +298,14 @@
                         android:text="FAST"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        android:textColor="@color/success" />
+                        android:textColor="@color/primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/usuario_fastest_sale"
+                        android:text="FASTEST SALE"
                         android:textSize="8sp"
-                        android:textColor="@color/success" />
+                        android:textColor="@color/primary" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
@@ -274,7 +322,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/usuario_disciplina"
+                android:text="Disciplina hoy,\nLibertad mañana."
                 android:textSize="16sp"
                 android:textStyle="italic"
                 android:textColor="@color/dark"
@@ -287,7 +335,7 @@
             android:id="@+id/btn_sync_manual"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="@string/usuario_sincronizar"
+            android:text="Sincronizar Ahora"
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="@color/white"
@@ -299,7 +347,7 @@
             android:id="@+id/btn_cerrar_sesion"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="@string/usuario_cerrar_sesion"
+            android:text="Cerrar Sesión"
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="@color/white"
