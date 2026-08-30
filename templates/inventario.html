@@ -950,7 +950,7 @@
         });
 
         // ============================================================
-        // GUARDAR PRODUCTO
+        // GUARDAR PRODUCTO (🔥 CORREGIDO: Verificar que el ID no sea undefined)
         // ============================================================
         document.getElementById('btn-guardar-producto').addEventListener('click', function() {
             const nombre = document.getElementById('producto-nombre').value.trim();
@@ -977,6 +977,7 @@
             const url = productoEditandoId ? `/api/producto/${productoEditandoId}` : '/api/producto';
             const method = productoEditandoId ? 'PUT' : 'POST';
 
+            // 🔥 CORREGIDO: Primero guardar el producto, luego la foto
             fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
@@ -985,9 +986,20 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // 🔥 NUEVO: Si hay foto seleccionada, subirla
+                    // ✅ Obtener el ID del producto (ya sea nuevo o editado)
+                    const productoId = productoEditandoId || data.producto_id;
+                    
+                    // 🔥 CORREGIDO: Verificar que el ID existe antes de subir foto
+                    if (!productoId) {
+                        console.error('❌ No se pudo obtener el ID del producto');
+                        alert('⚠️ Producto guardado, pero no se pudo obtener el ID para la foto');
+                        modalProducto.hide();
+                        cargarInventario();
+                        return;
+                    }
+
+                    // 🔥 Subir foto SI hay una foto seleccionada
                     if (fotoSeleccionada) {
-                        const productoId = productoEditandoId || data.producto_id;
                         const formData = new FormData();
                         formData.append('foto', fotoSeleccionada);
                         
@@ -1002,6 +1014,12 @@
                             } else {
                                 alert('⚠️ Producto guardado, pero error al subir foto: ' + fotoData.message);
                             }
+                            modalProducto.hide();
+                            cargarInventario();
+                        })
+                        .catch(error => {
+                            console.error('Error subiendo foto:', error);
+                            alert('⚠️ Producto guardado, pero error al subir foto');
                             modalProducto.hide();
                             cargarInventario();
                         });
@@ -1073,4 +1091,4 @@
     </script>
 
 </body>
-                                     </html>
+</html>
