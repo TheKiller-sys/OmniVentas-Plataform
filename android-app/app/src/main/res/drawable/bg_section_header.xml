@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Fondo principal con gradiente -->
+    <item>
+        <shape>
+            <gradient
+                android:startColor="#6366F1"
+                android:endColor="#8B5CF6"
+                android:angle="135" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+    
+    <!-- Efecto de brillo -->
+    <item>
+        <shape>
+            <gradient
+                android:startColor="#80FFFFFF"
+                android:endColor="#00FFFFFF"
+                android:angle="90" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+</layer-list>
