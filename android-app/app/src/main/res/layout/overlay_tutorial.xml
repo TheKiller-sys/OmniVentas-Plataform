@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#80000000"
+    android:clickable="true">
+
+    <!-- Contenido del tutorial -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp"
+        android:background="@drawable/bg_tutorial_modal">
+
+        <!-- Indicador de pasos -->
+        <LinearLayout
+            android:id="@+id/ll_indicador_pasos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Título -->
+        <TextView
+            android:id="@+id/tv_tutorial_titulo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="¡Bienvenido!"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="@color/dark"
+            android:gravity="center"
+            android:fontFamily="sans-serif-black"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Icono del paso -->
+        <ImageView
+            android:id="@+id/iv_tutorial_icono"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:scaleType="fitCenter" />
+
+        <!-- Descripción -->
+        <TextView
+            android:id="@+id/tv_tutorial_descripcion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Descripción del paso"
+            android:textSize="15sp"
+            android:textColor="@color/gray"
+            android:gravity="center"
+            android:lineSpacingMultiplier="1.4"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Botón Siguiente -->
+        <Button
+            android:id="@+id/btn_tutorial_siguiente"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Siguiente"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/bg_button_login"
+            android:layout_marginBottom="10dp" />
+
+        <!-- Botón Saltar -->
+        <TextView
+            android:id="@+id/tv_tutorial_saltar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Saltar tutorial"
+            android:textSize="13sp"
+            android:textColor="@color/gray"
+            android:padding="8dp"
+            android:gravity="center" />
+
+    </LinearLayout>
+</FrameLayout>
