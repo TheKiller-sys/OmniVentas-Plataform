@@ -177,25 +177,26 @@ public class TutorialManager {
         updateStepIndicator();
     }
 
+    // ✅ CORREGIDO: Usar variables finales para el lambda
     private void animateToStep(int stepIndex) {
-        // ✅ CORREGIDO: Usar el overlay directamente o buscar un contenedor
-        View contenido = overlay;
-        
-        // Intentar encontrar un contenedor con ID específico, si existe
-        View contenedor = overlay.findViewById(R.id.ll_contenido_tutorial);
-        if (contenedor != null) {
-            contenido = contenedor;
+        // Obtener la vista de contenido
+        View contenidoView = overlay.findViewById(R.id.ll_contenido_tutorial);
+        if (contenidoView == null) {
+            contenidoView = overlay;
         }
         
+        // ✅ Crear variables finales para usar en el lambda
+        final View viewToAnimate = contenidoView;
+        
         // Animación de salida
-        contenido.animate()
+        viewToAnimate.animate()
             .alpha(0f)
             .translationX(-100f)
             .setDuration(200)
             .withEndAction(() -> {
                 showStep(stepIndex);
-                contenido.setTranslationX(100f);
-                contenido.animate()
+                viewToAnimate.setTranslationX(100f);
+                viewToAnimate.animate()
                     .alpha(1f)
                     .translationX(0f)
                     .setDuration(300)
