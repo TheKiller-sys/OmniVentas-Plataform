@@ -8,7 +8,7 @@
 
     <!-- Contenido del tutorial -->
     <LinearLayout
-        android:id="@+id/ll_contenido_tutorial"  <!-- ✅ AGREGAR ESTE ID -->
+        android:id="@+id/ll_contenido_tutorial"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
