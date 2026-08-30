@@ -13,43 +13,92 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- HEADER CENTRADO -->
-        <LinearLayout
+        <!-- 🔥 NUEVO: HEADER CON DISEÑO PREMIUM -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="@color/secondary"
             android:layout_marginBottom="16dp">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/ventas_titulo"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:textColor="@color/dark"
-                android:fontFamily="sans-serif"
-                android:letterSpacing="0.5" />
+                android:orientation="vertical"
+                android:padding="20dp">
 
-            <View
-                android:layout_width="60dp"
-                android:layout_height="3dp"
-                android:background="@color/primary"
-                android:layout_marginTop="6dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/tv_pendientes_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 pendientes"
-                android:textSize="12sp"
-                android:textColor="@color/warning"
-                android:background="@color/warning_light"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="4dp"
-                android:layout_marginTop="8dp"
-                android:visibility="gone" />
-        </LinearLayout>
+                    <FrameLayout
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_avatar_white">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_ventas"
+                            android:tint="@color/white"
+                            android:layout_gravity="center" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="OMNIVENTAS"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white_alpha_80"
+                        android:letterSpacing="2"
+                        android:layout_marginStart="12dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nueva Venta"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:fontFamily="sans-serif-black"
+                    android:layout_marginTop="12dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Registra ventas de forma rápida"
+                    android:textSize="15sp"
+                    android:textColor="@color/white_alpha_80"
+                    android:layout_marginTop="4dp" />
+
+                <View
+                    android:layout_width="60dp"
+                    android:layout_height="3dp"
+                    android:background="@color/white"
+                    android:layout_marginTop="12dp"
+                    android:alpha="0.3" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Contador de pendientes -->
+        <TextView
+            android:id="@+id/tv_pendientes_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 pendientes"
+            android:textSize="12sp"
+            android:textColor="@color/warning"
+            android:background="@color/warning_light"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone" />
 
         <!-- BÚSQUEDA ESTÉTICA Y LLAMATIVA -->
         <com.google.android.material.card.MaterialCardView
@@ -106,7 +155,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/ventas_sugerencias"
+            android:text="Sugerencias"
             android:textSize="14sp"
             android:textColor="@color/gray"
             android:layout_marginBottom="8dp" />
@@ -130,7 +179,7 @@
             android:layout_height="wrap_content"
             app:cardCornerRadius="16dp"
             app:cardElevation="4dp"
-            app:cardBackgroundColor="@color/primary"
+            app:cardBackgroundColor="@color/secondary"
             android:layout_marginBottom="12dp">
 
             <LinearLayout
@@ -149,7 +198,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/ventas_total_vivo"
+                        android:text="TOTAL EN VIVO"
                         android:textColor="@color/white_alpha_80"
                         android:textSize="12sp"
                         android:letterSpacing="0.1" />
@@ -302,7 +351,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/ventas_cantidad"
+                        android:text="Cantidad"
                         android:textSize="14sp"
                         android:textColor="@color/dark_secondary" />
 
@@ -354,7 +403,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/ventas_subtotal"
+                        android:text="Subtotal"
                         android:textSize="14sp"
                         android:textColor="@color/gray"
                         android:padding="4dp" />
@@ -380,7 +429,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/ventas_descuento"
+                        android:text="Descuento"
                         android:textSize="14sp"
                         android:textColor="@color/gray"
                         android:padding="4dp" />
@@ -403,7 +452,7 @@
             android:id="@+id/btn_confirm_sale"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="@string/ventas_confirmar"
+            android:text="Confirmar Venta"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/white"
