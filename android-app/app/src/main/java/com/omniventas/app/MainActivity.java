@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;  // ✅ IMPORT AGREGADO
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -79,23 +80,28 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // 🔥 INTEGRAR TUTORIAL DE BIENVENIDA
+            // ✅ CORREGIDO: Usar findViewById con ViewGroup importado
             ViewGroup rootView = findViewById(android.R.id.content);
-            tutorialManager = new TutorialManager(this, rootView);
-            tutorialManager.setCallback(new TutorialManager.TutorialCallback() {
-                @Override
-                public void onTutorialComplete() {
-                    logger.success("Tutorial completado por vendedor");
-                    // Puedes agregar lógica adicional aquí
-                }
-
-                @Override
-                public void onTutorialSkip() {
-                    logger.info("Tutorial omitido por vendedor");
-                }
-            });
             
-            // Mostrar tutorial solo si es primera vez
-            tutorialManager.showTutorialIfNeeded();
+            if (rootView != null) {
+                tutorialManager = new TutorialManager(this, rootView);
+                tutorialManager.setCallback(new TutorialManager.TutorialCallback() {
+                    @Override
+                    public void onTutorialComplete() {
+                        logger.success("Tutorial completado por vendedor");
+                    }
+
+                    @Override
+                    public void onTutorialSkip() {
+                        logger.info("Tutorial omitido por vendedor");
+                    }
+                });
+                
+                // Mostrar tutorial solo si es primera vez
+                tutorialManager.showTutorialIfNeeded();
+            } else {
+                Log.e(TAG, "❌ rootView es null, no se puede mostrar tutorial");
+            }
 
             SyncManager.scheduleSync(this);
             Log.d(TAG, "✅ onCreate completado correctamente");
