@@ -1,0 +1,82 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.omniventas.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.omniventas.app"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        
+        // URL de API desde gradle.properties o variable de entorno
+        buildConfigField "String", "API_URL", "\"${project.properties.getOrDefault('API_URL', 'https://omnisell-x19d.onrender.com/')}\""
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "API_URL", "\"${project.properties.getOrDefault('API_URL', 'https://omnisell-x19d.onrender.com/')}\""
+            debuggable false
+            jniDebuggable false
+            renderscriptDebuggable false
+            zipAlignEnabled true
+        }
+        debug {
+            minifyEnabled false
+            debuggable true
+            buildConfigField "String", "API_URL", "\"${System.getenv('API_URL') ?: project.properties.getOrDefault('API_URL', 'https://omnisell-x19d.onrender.com/')}\""
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    
+    buildFeatures {
+        buildConfig true
+    }
+}
+
+dependencies {
+    // AndroidX Core
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.10.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+    
+    // Room Database (OFFLINE)
+    implementation 'androidx.room:room-runtime:2.6.1'
+    annotationProcessor 'androidx.room:room-compiler:2.6.1'
+    implementation 'androidx.room:room-ktx:2.6.1'
+    
+    // WorkManager (sincronización en segundo plano)
+    implementation 'androidx.work:work-runtime:2.9.0'
+    
+    // Networking
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-scalars:2.9.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.11.0'
+    implementation 'com.auth0:java-jwt:4.4.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    
+    // Glide para cargar imágenes de productos
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
+    
+    // Tests
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}

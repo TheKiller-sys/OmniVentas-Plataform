@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - OmniVentas</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Tutorial CSS -->
+    <link href="/static/css/tutorial.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4361EE;
+            --primary-dark: #3651D4;
+            --primary-light: #EEF2FF;
+            --primary-gradient: linear-gradient(135deg, #4361EE 0%, #3A0CA3 100%);
+            --secondary: #FF6B35;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --dark: #0F172A;
+            --dark-secondary: #1E293B;
+            --gray: #64748B;
+            --gray-light: #F1F5F9;
+            --white: #FFFFFF;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.10);
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 260px;
+            --header-height: 72px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #F8FAFC;
+            color: var(--dark);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--gray-light); }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary-dark); }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .animate-on-load {
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        .delay-1 { animation-delay: 0.05s; }
+        .delay-2 { animation-delay: 0.10s; }
+        .delay-3 { animation-delay: 0.15s; }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--header-height);
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            z-index: 1050;
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+            transition: var(--transition);
+        }
+        .header.scrolled { box-shadow: var(--shadow-md); }
+
+        .header .toggle-sidebar {
+            width: 42px; height: 42px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: var(--radius-sm);
+            margin-right: 16px;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 15px rgba(67,97,238,0.3);
+            transition: var(--transition);
+            font-size: 1.1rem;
+        }
+        .header .toggle-sidebar:hover { transform: rotate(90deg) scale(1.05); }
+
+        .header .header-title {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+            margin-bottom: 0;
+        }
+        .header .header-title i { -webkit-text-fill-color: var(--primary); margin-right: 8px; }
+
+        .header .header-actions {
+            display: flex; align-items: center; gap: 12px;
+            margin-left: auto;
+        }
+
+        .header .header-actions .business-name {
+            font-weight: 600; color: var(--dark-secondary);
+            font-size: 0.9rem; padding: 6px 14px;
+            background: var(--gray-light); border-radius: 50px;
+        }
+
+        .header .header-actions .btn-logout {
+            background: transparent; border: 2px solid #FEE2E2;
+            color: var(--danger); padding: 6px 16px;
+            border-radius: var(--radius-sm);
+            font-weight: 600; font-size: 0.8rem;
+            transition: var(--transition);
+        }
+        .header .header-actions .btn-logout:hover {
+            background: var(--danger); color: white;
+            border-color: var(--danger);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239,68,68,0.3);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            height: calc(100vh - var(--header-height));
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+            color: white;
+            overflow-y: auto;
+            transform: translateX(-100%);
+            z-index: 1040;
+            opacity: 0;
+            visibility: hidden;
+            border-top-right-radius: var(--radius-lg);
+            box-shadow: 5px 0 30px rgba(0,0,0,0.2);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .sidebar-open .sidebar {
+            transform: translateX(0);
+            opacity: 1;
+            visibility: visible;
+            z-index: 1060 !important;
+        }
+
+        .sidebar .sidebar-logo {
+            padding: 24px 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex; align-items: center; gap: 12px;
+            font-size: 1.3rem; font-weight: 700;
+        }
+        .sidebar .sidebar-logo i { color: var(--primary); font-size: 1.6rem; }
+        .sidebar .sidebar-logo span {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar .nav { padding: 12px 0; }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.6);
+            padding: 12px 24px;
+            margin: 2px 12px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+        .sidebar .nav-link i { width: 22px; text-align: center; font-size: 1.05rem; flex-shrink: 0; }
+        .sidebar .nav-link:hover { color: white; background: rgba(255,255,255,0.06); }
+        .sidebar .nav-link.active {
+            color: white;
+            background: rgba(67,97,238,0.2);
+            box-shadow: inset 3px 0 0 var(--primary);
+        }
+
+        .sidebar .sidebar-footer {
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            margin-top: 12px;
+        }
+        .sidebar .sidebar-footer .btn-sidebar-logout {
+            width: 100%;
+            background: rgba(239,68,68,0.15);
+            color: #FCA5A5;
+            border: none;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        .sidebar .sidebar-footer .btn-sidebar-logout:hover {
+            background: rgba(239,68,68,0.25);
+            color: white;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 1030;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .sidebar-open .sidebar-overlay { opacity: 1; visibility: visible; }
+
+        @media (min-width: 992px) {
+            .sidebar-overlay { display: none; }
+            .sidebar {
+                transform: translateX(0) !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                border-radius: 0;
+                z-index: 1040 !important;
+            }
+            .main-content { margin-left: var(--sidebar-width); }
+            .header .toggle-sidebar { display: none; }
+        }
+
+        .main-content {
+            margin-top: var(--header-height);
+            padding: 28px 32px 40px;
+            min-height: calc(100vh - var(--header-height));
+            transition: var(--transition);
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-header-wrapper {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--gray-light);
+        }
+
+        .section-header-wrapper .section-title {
+            font-weight: 800;
+            font-size: 1.6rem;
+            color: var(--dark);
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .section-header-wrapper .section-title i { color: var(--primary); font-size: 1.4rem; }
+
+        .section-header-wrapper .back-link {
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            margin-left: auto;
+        }
+        .section-header-wrapper .back-link:hover { color: var(--primary); }
+
+        .card-premium {
+            border: none;
+            border-radius: var(--radius-md);
+            background: var(--white);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: var(--transition);
+            margin-bottom: 28px;
+        }
+        .card-premium:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px); }
+
+        .card-premium .card-header-custom {
+            padding: 18px 24px;
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .card-premium .card-header-custom h6 {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--dark-secondary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-premium .card-header-custom h6 i { color: var(--primary); }
+        .card-premium .card-body-custom { padding: 20px 24px 24px; }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+        }
+
+        .table-premium {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 4px;
+        }
+        .table-premium thead th {
+            background: var(--gray-light);
+            color: var(--dark-secondary);
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 10px 16px;
+            border: none;
+        }
+        .table-premium tbody tr {
+            background: var(--white);
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+        }
+        .table-premium tbody tr:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-sm);
+        }
+        .table-premium tbody td {
+            padding: 12px 16px;
+            vertical-align: middle;
+            border: none;
+            font-size: 0.9rem;
+        }
+        .table-premium tbody td:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+        .table-premium tbody td:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+        .empty-state i { font-size: 2.5rem; opacity: 0.3; margin-bottom: 12px; display: block; }
+        .empty-state h6 { font-weight: 600; color: var(--dark-secondary); }
+
+        .btn-premium {
+            border-radius: var(--radius-sm);
+            padding: 8px 18px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-premium:hover { transform: translateY(-2px); }
+        .btn-premium.primary { background: var(--primary-gradient); color: white; box-shadow: 0 4px 15px rgba(67,97,238,0.3); }
+        .btn-premium.primary:hover { box-shadow: 0 8px 30px rgba(67,97,238,0.4); }
+        .btn-premium.secondary { background: var(--gray-light); color: var(--dark-secondary); }
+        .btn-premium.secondary:hover { background: #E2E8F0; }
+        .btn-premium.danger { background: var(--danger); color: white; box-shadow: 0 4px 15px rgba(239,68,68,0.3); }
+        .btn-premium.danger:hover { box-shadow: 0 8px 30px rgba(239,68,68,0.4); }
+
+        .modal-content-premium {
+            border-radius: var(--radius-lg);
+            border: none;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        .modal-header-premium {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 20px 24px;
+            border: none;
+        }
+        .modal-header-premium .btn-close { filter: brightness(0) invert(1); }
+        .modal-body-premium { padding: 24px; }
+        .modal-footer-premium {
+            padding: 16px 24px;
+            border-top: 1px solid var(--gray-light);
+            background: #FAFBFC;
+        }
+
+        .form-control-premium {
+            border: 2px solid var(--gray-light);
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: var(--white);
+            width: 100%;
+        }
+        .form-control-premium:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(67,97,238,0.1);
+            outline: none;
+        }
+        .form-label-premium {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--dark-secondary);
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 992px) {
+            .main-content { padding: 20px; }
+            .section-header-wrapper .section-title { font-size: 1.3rem; }
+        }
+
+        @media (max-width: 768px) {
+            .header { padding: 0 12px; }
+            .header .business-name { display: none; }
+            .main-content { padding: 16px; }
+            .card-premium .card-header-custom { flex-direction: column; align-items: flex-start; }
+            .chart-container { height: 200px; }
+            .table-premium { font-size: 0.8rem; }
+            .table-premium thead th,
+            .table-premium tbody td { padding: 8px 10px; }
+        }
+
+        @media (max-width: 576px) {
+            .card-premium .card-body-custom { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================
+    SIDEBAR OVERLAY
+    ============================================ -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- ============================================
+    HEADER
+    ============================================ -->
+    <header class="header" id="header">
+        <button class="toggle-sidebar" onclick="toggleSidebar()" aria-label="Alternar menú">
+            <i class="fas fa-bars"></i>
+        </button>
+        <h1 class="header-title"><i class="fas fa-users"></i>OmniVentas</h1>
+        <div class="header-actions">
+            <button class="btn-tutorial-header" onclick="OmniTutorial.reset()" title="Ver tutorial interactivo">
+                <i class="fas fa-play-circle"></i>
+                <span>Ver Tutorial</span>
+                <span class="badge-tutorial">?</span>
+            </button>
+            <span class="business-name">{{ business_name }}</span>
+            <a href="/logout" class="btn btn-logout">
+                <i class="fas fa-sign-out-alt me-1"></i>Salir
+            </a>
+        </div>
+    </header>
+
+    <!-- ============================================
+    SIDEBAR
+    ============================================ -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-chart-line"></i>
+            <span>Panel Admin</span>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="fas fa-th-large"></i><span>Dashboard</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="/ventas"><i class="fas fa-shopping-cart"></i><span>Ventas</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="/inventario"><i class="fas fa-boxes"></i><span>Inventario</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="/finanzas"><i class="fas fa-chart-pie"></i><span>Finanzas</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="/analisis"><i class="fas fa-brain"></i><span>Análisis</span></a></li>
+            <li class="nav-item"><a class="nav-link active" href="/clientes"><i class="fas fa-users"></i><span>Clientes</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="/vendedores"><i class="fas fa-user-tie"></i><span>Vendedores</span></a></li>
+            <li class="nav-item mt-3 pt-3 border-top border-secondary border-opacity-10">
+                <a class="nav-link" href="/configuracion"><i class="fas fa-cog"></i><span>Configuración</span></a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <button class="btn-sidebar-logout" onclick="window.location.href='/logout'">
+                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+            </button>
+        </div>
+    </nav>
+
+    <!-- ============================================
+    MAIN CONTENT
+    ============================================ -->
+    <main class="main-content">
+
+        <!-- Section Header -->
+        <div class="section-header-wrapper">
+            <h2 class="section-title">
+                <i class="fas fa-users"></i>
+                Gestión de Clientes
+            </h2>
+            <a href="/dashboard" class="back-link">
+                <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+            </a>
+        </div>
+
+        <!-- Top clientes -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="card-premium animate-on-load">
+                    <div class="card-header-custom">
+                        <h6><i class="fas fa-user-plus"></i>Clientes por Mes</h6>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="chart-container">
+                            <canvas id="clientesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card-premium animate-on-load delay-1">
+                    <div class="card-header-custom">
+                        <h6><i class="fas fa-crown"></i>Top Clientes</h6>
+                        <button class="btn-premium secondary" id="btn-actualizar-clientes">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="table-responsive">
+                            <table class="table-premium">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th class="text-center">Compras</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="top-clientes-body"></tbody>
+                            </table>
+                            <div id="top-clientes-empty" class="empty-state" style="display: none;">
+                                <i class="fas fa-users-slash"></i>
+                                <h6>No hay clientes registrados</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Todos los clientes -->
+        <div class="card-premium animate-on-load delay-2">
+            <div class="card-header-custom">
+                <h6><i class="fas fa-list"></i>Todos los Clientes</h6>
+                <button class="btn-premium primary" id="btn-agregar-cliente">
+                    <i class="fas fa-plus"></i> Agregar Cliente
+                </button>
+            </div>
+            <div class="card-body-custom">
+                <div class="table-responsive">
+                    <table class="table-premium">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th class="text-center">Compras</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientes-body"></tbody>
+                    </table>
+                    <div id="clientes-empty" class="empty-state" style="display: none;">
+                        <i class="fas fa-user-slash"></i>
+                        <h6>No hay clientes registrados</h6>
+                        <p class="text-muted small">Agrega tus primeros clientes para empezar</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============================================
+    MODAL AGREGAR CLIENTE
+    ============================================ -->
+    <div class="modal fade" id="modalCliente" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content modal-content-premium">
+                <div class="modal-header modal-header-premium">
+                    <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Agregar Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body modal-body-premium">
+                    <form id="form-cliente">
+                        <div class="mb-3">
+                            <label class="form-label-premium">Nombre Completo *</label>
+                            <input type="text" class="form-control-premium" id="cliente-nombre" placeholder="Ej: Juan Pérez" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label-premium">Email</label>
+                            <input type="email" class="form-control-premium" id="cliente-email" placeholder="ejemplo@email.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label-premium">Teléfono</label>
+                            <input type="text" class="form-control-premium" id="cliente-telefono" placeholder="+1234567890">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label-premium">Dirección</label>
+                            <input type="text" class="form-control-premium" id="cliente-direccion" placeholder="Calle, ciudad, país">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer modal-footer-premium">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: var(--radius-sm); font-weight: 600;">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btn-guardar-cliente" style="border-radius: var(--radius-sm); font-weight: 600;">
+                        <i class="fas fa-save me-2"></i>Guardar Cliente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+    SCRIPTS
+    ============================================ -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/tutorial.js"></script>
+    <script>
+        // ============================================================
+        // TOGGLE SIDEBAR
+        // ============================================================
+        function toggleSidebar() {
+            document.body.classList.toggle('sidebar-open');
+        }
+
+        document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth < 992) {
+                    document.body.classList.remove('sidebar-open');
+                }
+            });
+        });
+
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 20) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // ============================================================
+        // VARIABLES
+        // ============================================================
+        let clientesChart = null;
+        const modalCliente = new bootstrap.Modal(document.getElementById('modalCliente'));
+
+        // ============================================================
+        // CARGAR CLIENTES
+        // ============================================================
+        function cargarClientes() {
+            fetch('/api/clientes')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        return;
+                    }
+                    actualizarClientes(data);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function actualizarClientes(data) {
+            // Gráfico
+            if (clientesChart) clientesChart.destroy();
+            const ctx = document.getElementById('clientesChart').getContext('2d');
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+            gradient.addColorStop(0, 'rgba(67, 97, 238, 0.3)');
+            gradient.addColorStop(1, 'rgba(67, 97, 238, 0.02)');
+
+            clientesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.clientes_meses || ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+                    datasets: [{ 
+                        label: 'Nuevos Clientes', 
+                        data: data.clientes_por_mes || [0,0,0,0,0,0], 
+                        borderColor: '#4361EE',
+                        backgroundColor: gradient,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#4361EE',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(255,255,255,0.95)',
+                            titleColor: '#0F172A',
+                            bodyColor: '#64748B',
+                            borderColor: 'rgba(0,0,0,0.06)',
+                            borderWidth: 1,
+                            padding: 14,
+                            cornerRadius: 12,
+                            callbacks: {
+                                label: function(ctx) {
+                                    return ctx.raw + ' clientes';
+                                }
+                            }
+                        }
+                    },
+                    scales: { 
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+                            ticks: { font: { size: 11 } }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { font: { size: 11 } }
+                        }
+                    },
+                    animation: {
+                        duration: 800,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+
+            // Top clientes
+            const topBody = document.getElementById('top-clientes-body');
+            const topEmpty = document.getElementById('top-clientes-empty');
+            topBody.innerHTML = '';
+
+            if (data.top_clientes && data.top_clientes.length > 0) {
+                topEmpty.style.display = 'none';
+                data.top_clientes.forEach(c => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${c.nombre}</strong></td>
+                        <td class="text-center">${c.compras}</td>
+                        <td class="text-end">$${c.total.toFixed(2)}</td>
+                    `;
+                    topBody.appendChild(row);
+                });
+            } else {
+                topEmpty.style.display = 'block';
+            }
+
+            // Todos los clientes
+            const body = document.getElementById('clientes-body');
+            const empty = document.getElementById('clientes-empty');
+            body.innerHTML = '';
+
+            if (data.clientes && data.clientes.length > 0) {
+                empty.style.display = 'none';
+                data.clientes.forEach(c => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${c.nombre}</strong></td>
+                        <td>${c.email || '-'}</td>
+                        <td>${c.telefono || '-'}</td>
+                        <td class="text-center">${c.compras || 0}</td>
+                        <td class="text-end">$${(c.total || 0).toFixed(2)}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editarCliente(${c.id})" style="border-radius: var(--radius-sm);"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarCliente(${c.id})" style="border-radius: var(--radius-sm);"><i class="fas fa-trash"></i></button>
+                        </td>
+                    `;
+                    body.appendChild(row);
+                });
+            } else {
+                empty.style.display = 'block';
+            }
+        }
+
+        // ============================================================
+        // AGREGAR CLIENTE
+        // ============================================================
+        document.getElementById('btn-agregar-cliente').addEventListener('click', function() {
+            document.getElementById('form-cliente').reset();
+            modalCliente.show();
+        });
+
+        document.getElementById('btn-guardar-cliente').addEventListener('click', function() {
+            const nombre = document.getElementById('cliente-nombre').value.trim();
+            const email = document.getElementById('cliente-email').value.trim();
+            const telefono = document.getElementById('cliente-telefono').value.trim();
+            const direccion = document.getElementById('cliente-direccion').value.trim();
+
+            if (!nombre) {
+                alert('Por favor ingresa el nombre del cliente');
+                return;
+            }
+
+            fetch('/api/cliente', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nombre: nombre,
+                    email: email,
+                    telefono: telefono,
+                    direccion: direccion
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ Cliente agregado correctamente!');
+                    modalCliente.hide();
+                    cargarClientes();
+                } else {
+                    alert('❌ Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('❌ Error de conexión: ' + error.message);
+            });
+        });
+
+        // ============================================================
+        // EDITAR CLIENTE
+        // ============================================================
+        function editarCliente(id) {
+            alert('Función de editar cliente en desarrollo');
+        }
+
+        // ============================================================
+        // ELIMINAR CLIENTE
+        // ============================================================
+        function eliminarCliente(id) {
+            if (!confirm('¿Estás seguro de eliminar este cliente?')) {
+                return;
+            }
+
+            fetch(`/api/cliente/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ Cliente eliminado correctamente');
+                    cargarClientes();
+                } else {
+                    alert('❌ Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('❌ Error de conexión: ' + error.message);
+            });
+        }
+
+        // ============================================================
+        // ACTUALIZAR
+        // ============================================================
+        document.getElementById('btn-actualizar-clientes').addEventListener('click', cargarClientes);
+
+        // ============================================================
+        // INICIALIZACIÓN
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', cargarClientes);
+    </script>
+
+</body>
+    </html>

@@ -1,0 +1,581 @@
+package com.omniventas.app.ui;
+
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Vibrator;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.card.MaterialCardView;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
+import com.omniventas.app.R;
+import com.omniventas.app.adapters.ProductoAdapter;
+import com.omniventas.app.api.ApiService;
+import com.omniventas.app.api.RetrofitClient;
+import com.omniventas.app.models.Producto;
+import com.omniventas.app.models.VentaRequest;
+import com.omniventas.app.models.VentaResponse;
+import com.omniventas.app.repository.OmniVentasRepository;
+import com.omniventas.app.utils.ImageLoader;
+import com.omniventas.app.utils.SessionManager;
+import com.omniventas.app.utils.TelegramLogger;
+import java.util.ArrayList;
+import java.util.List;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class VentasFragment extends Fragment {
+    private static final String TAG = "VentasFragment";
+
+    private EditText etSearchProduct;
+    private TextView tvLiveTotal, tvLivePercent, tvProductName, tvProductSeccion, tvProductDescription;
+    private TextView tvUnitPrice, tvQuantity, tvDiscount, tvSubtotal, tvPendientesCount;
+    private ImageView btnDecreaseQty, btnIncreaseQty;
+    private ImageView ivSelectedProduct;
+    private Button btnConfirmSale;
+    private RecyclerView rvProductosBusqueda;
+    private LinearLayout llSugerencias;
+    private MaterialCardView cardProductoSeleccionado, cardControlesCantidad;
+    private SessionManager sessionManager;
+    private TelegramLogger logger;
+    private OmniVentasRepository repository;
+    private Producto selectedProduct = null;
+    private int quantity = 1;
+    private List<Producto> productos = new ArrayList<>();
+    private List<Producto> productosFiltrados = new ArrayList<>();
+    private ProductoAdapter productoAdapter;
+    private boolean isSearching = false;
+    private Vibrator vibrator;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView iniciado");
+        
+        try {
+            View view = inflater.inflate(R.layout.fragment_ventas, container, false);
+            Log.d(TAG, "Layout inflado correctamente");
+
+            // Inicializar vistas
+            etSearchProduct = view.findViewById(R.id.et_search_product);
+            tvLiveTotal = view.findViewById(R.id.tv_live_total);
+            tvLivePercent = view.findViewById(R.id.tv_live_percent);
+            tvProductName = view.findViewById(R.id.tv_product_name);
+            tvProductSeccion = view.findViewById(R.id.tv_product_seccion);
+            tvProductDescription = view.findViewById(R.id.tv_product_description);  // ✅ AHORA EXISTE
+            tvUnitPrice = view.findViewById(R.id.tv_unit_price);
+            tvQuantity = view.findViewById(R.id.tv_quantity);
+            tvDiscount = view.findViewById(R.id.tv_discount);  // ✅ AHORA EXISTE
+            tvSubtotal = view.findViewById(R.id.tv_subtotal);
+            tvPendientesCount = view.findViewById(R.id.tv_pendientes_count);
+            btnDecreaseQty = view.findViewById(R.id.btn_decrease_qty);
+            btnIncreaseQty = view.findViewById(R.id.btn_increase_qty);
+            btnConfirmSale = view.findViewById(R.id.btn_confirm_sale);
+            rvProductosBusqueda = view.findViewById(R.id.rv_productos_busqueda);
+            llSugerencias = view.findViewById(R.id.ll_sugerencias);
+            ivSelectedProduct = view.findViewById(R.id.iv_product_image);
+            cardProductoSeleccionado = view.findViewById(R.id.card_producto_seleccionado);
+            cardControlesCantidad = view.findViewById(R.id.card_controles_cantidad);
+
+            sessionManager = new SessionManager(getContext());
+            logger = TelegramLogger.getInstance(getContext());
+            repository = new OmniVentasRepository(getContext());
+            vibrator = (Vibrator) getContext().getSystemService(getContext().VIBRATOR_SERVICE);
+
+            // Configurar RecyclerView para búsqueda
+            productoAdapter = new ProductoAdapter(producto -> {
+                selectedProduct = producto;
+                quantity = 1;
+                updateUI();
+                rvProductosBusqueda.setVisibility(View.GONE);
+                isSearching = false;
+                etSearchProduct.setText("");
+                
+                if (vibrator != null) {
+                    vibrator.vibrate(50);
+                }
+            });
+            rvProductosBusqueda.setLayoutManager(new LinearLayoutManager(getContext()));
+            rvProductosBusqueda.setAdapter(productoAdapter);
+
+            // Cargar productos desde la base de datos
+            cargarProductos();
+
+            // Configurar búsqueda
+            etSearchProduct.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                @Override public void afterTextChanged(Editable s) {
+                    String query = s.toString().trim();
+                    if (query.length() >= 2) {
+                        isSearching = true;
+                        buscarProductos(query);
+                    } else if (query.isEmpty()) {
+                        isSearching = false;
+                        rvProductosBusqueda.setVisibility(View.GONE);
+                    }
+                }
+            });
+
+            // Controles de cantidad
+            btnDecreaseQty.setOnClickListener(v -> {
+                if (quantity > 1) {
+                    quantity--;
+                    updateQuantityAndPrice();
+                    if (vibrator != null) {
+                        vibrator.vibrate(30);
+                    }
+                }
+            });
+
+            btnIncreaseQty.setOnClickListener(v -> {
+                if (selectedProduct != null && quantity < selectedProduct.getStock()) {
+                    quantity++;
+                    updateQuantityAndPrice();
+                    if (vibrator != null) {
+                        vibrator.vibrate(30);
+                    }
+                } else if (selectedProduct == null) {
+                    Toast.makeText(getContext(), "Selecciona un producto primero", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Stock insuficiente", Toast.LENGTH_SHORT).show();
+                    if (vibrator != null) {
+                        vibrator.vibrate(100);
+                    }
+                }
+            });
+
+            btnConfirmSale.setOnClickListener(v -> confirmSale());
+
+            // Cargar ventas pendientes
+            cargarVentasPendientes();
+
+            updateUI();
+
+            Log.d(TAG, "✅ onCreateView completado");
+            return view;
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error en onCreateView: " + e.getMessage());
+            e.printStackTrace();
+            
+            TextView errorView = new TextView(getContext());
+            errorView.setText("Error cargando Ventas\n\n" + e.getMessage());
+            errorView.setPadding(20, 20, 20, 20);
+            return errorView;
+        }
+    }
+
+    private void cargarProductos() {
+        new CargarProductosTask().execute();
+    }
+
+    private class CargarProductosTask extends AsyncTask<Void, Void, List<Producto>> {
+        @Override
+        protected List<Producto> doInBackground(Void... voids) {
+            try {
+                List<Producto> resultado = new ArrayList<>();
+                List<com.omniventas.app.local.ProductoEntity> entities = repository.getProductosLocal();
+                for (com.omniventas.app.local.ProductoEntity entity : entities) {
+                    Producto p = new Producto();
+                    p.setId(entity.getId());
+                    p.setNombre(entity.getNombre());
+                    p.setSeccion(entity.getSeccion());
+                    p.setPrecio(entity.getPrecio());
+                    p.setStock(entity.getStock());
+                    p.setDescripcion(entity.getDescripcion());
+                    p.setFotoUrl(entity.getFotoUrl());
+                    resultado.add(p);
+                }
+                return resultado;
+            } catch (Exception e) {
+                Log.e(TAG, "Error cargando productos: " + e.getMessage());
+                return new ArrayList<>();
+            }
+        }
+
+        @Override
+        protected void onPostExecute(List<Producto> result) {
+            productos = result;
+            productosFiltrados = new ArrayList<>(productos);
+            crearSugerencias();
+            Log.d(TAG, "✅ " + productos.size() + " productos cargados");
+        }
+    }
+
+    private void crearSugerencias() {
+        llSugerencias.removeAllViews();
+        
+        List<Producto> sugerencias = new ArrayList<>();
+        for (Producto p : productos) {
+            if (sugerencias.size() < 5 && !sugerencias.contains(p)) {
+                sugerencias.add(p);
+            }
+        }
+
+        for (Producto p : sugerencias) {
+            Chip chip = new Chip(getContext());
+            chip.setText(p.getNombre());
+            chip.setChipBackgroundColorResource(R.color.primary);
+            chip.setTextColor(getResources().getColor(R.color.white));
+            chip.setMaxLines(1);
+            chip.setEllipsize(TextUtils.TruncateAt.END);
+            chip.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ));
+            chip.setOnClickListener(v -> {
+                selectedProduct = p;
+                quantity = 1;
+                updateUI();
+                if (vibrator != null) {
+                    vibrator.vibrate(50);
+                }
+            });
+            llSugerencias.addView(chip);
+            LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) chip.getLayoutParams();
+            params.setMarginEnd(8);
+            chip.setLayoutParams(params);
+        }
+    }
+
+    private void buscarProductos(String query) {
+        productosFiltrados.clear();
+        for (Producto p : productos) {
+            if (p.getNombre().toLowerCase().contains(query.toLowerCase())) {
+                productosFiltrados.add(p);
+            }
+        }
+        
+        if (!productosFiltrados.isEmpty()) {
+            productoAdapter.setProductos(productosFiltrados);
+            rvProductosBusqueda.setVisibility(View.VISIBLE);
+        } else {
+            rvProductosBusqueda.setVisibility(View.GONE);
+        }
+    }
+
+    private void cargarVentasPendientes() {
+        new CargarVentasTask().execute();
+    }
+
+    private class CargarVentasTask extends AsyncTask<Void, Void, Integer> {
+        @Override
+        protected Integer doInBackground(Void... voids) {
+            try {
+                return repository.getVentasPendientesCount();
+            } catch (Exception e) {
+                return 0;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Integer pendientes) {
+            if (pendientes > 0) {
+                tvPendientesCount.setVisibility(View.VISIBLE);
+                tvPendientesCount.setText(pendientes + " pendientes");
+            } else {
+                tvPendientesCount.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void updateUI() {
+        if (selectedProduct != null) {
+            tvProductName.setText(selectedProduct.getNombre());
+            tvProductSeccion.setText(selectedProduct.getSeccion() != null ? selectedProduct.getSeccion() : "Sin categoría");
+            tvProductDescription.setText(selectedProduct.getDescripcion() != null ? selectedProduct.getDescripcion() : "");
+            tvUnitPrice.setText("$" + String.format("%.2f", selectedProduct.getPrecio()));
+            tvQuantity.setText(String.valueOf(quantity));
+            updateQuantityAndPrice();
+            
+            // Mostrar la foto del producto seleccionado
+            if (selectedProduct.getFotoUrl() != null && !selectedProduct.getFotoUrl().isEmpty()) {
+                String fullUrl = ImageLoader.getFullImageUrl(selectedProduct.getFotoUrl());
+                Glide.with(this)
+                    .load(fullUrl)
+                    .apply(new RequestOptions()
+                        .placeholder(R.drawable.ic_product)
+                        .error(R.drawable.ic_product)
+                        .centerCrop()
+                        .diskCacheStrategy(DiskCacheStrategy.ALL))
+                    .into(ivSelectedProduct);
+                ivSelectedProduct.setVisibility(View.VISIBLE);
+            } else {
+                ivSelectedProduct.setImageResource(R.drawable.ic_product);
+                ivSelectedProduct.setVisibility(View.VISIBLE);
+            }
+            
+            if (cardProductoSeleccionado != null) {
+                cardProductoSeleccionado.setVisibility(View.VISIBLE);
+            }
+            if (cardControlesCantidad != null) {
+                cardControlesCantidad.setVisibility(View.VISIBLE);
+            }
+        } else {
+            tvProductName.setText("Selecciona un producto");
+            tvProductSeccion.setText("");
+            tvProductDescription.setText("");
+            tvUnitPrice.setText("$0.00");
+            tvQuantity.setText("1");
+            tvDiscount.setText("$0.00");
+            tvSubtotal.setText("$0.00");
+            tvLiveTotal.setText("$0.00");
+            ivSelectedProduct.setVisibility(View.GONE);
+            
+            if (cardProductoSeleccionado != null) {
+                cardProductoSeleccionado.setVisibility(View.GONE);
+            }
+            if (cardControlesCantidad != null) {
+                cardControlesCantidad.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void updateQuantityAndPrice() {
+        tvQuantity.setText(String.valueOf(quantity));
+        if (selectedProduct != null) {
+            double subtotal = selectedProduct.getPrecio() * quantity;
+            tvDiscount.setText("$0.00");
+            tvSubtotal.setText("$" + String.format("%.2f", subtotal));
+            tvLiveTotal.setText("$" + String.format("%.2f", subtotal));
+            tvLivePercent.setText("+" + String.format("%.0f%%", Math.random() * 20));
+        }
+    }
+
+    private void confirmSale() {
+        Log.d(TAG, "confirmSale - Iniciando");
+        
+        if (selectedProduct == null) {
+            Toast.makeText(getContext(), "Selecciona un producto primero", Toast.LENGTH_SHORT).show();
+            if (vibrator != null) {
+                vibrator.vibrate(100);
+            }
+            return;
+        }
+
+        if (quantity > selectedProduct.getStock()) {
+            Toast.makeText(getContext(), "Stock insuficiente", Toast.LENGTH_SHORT).show();
+            if (vibrator != null) {
+                vibrator.vibrate(100);
+            }
+            return;
+        }
+
+        String token = sessionManager.getToken();
+        
+        Producto productoVendido = selectedProduct;
+        int cantidadVendida = quantity;
+        double precioVenta = selectedProduct.getPrecio();
+        String fotoUrl = selectedProduct.getFotoUrl();
+        
+        if (token == null || token.isEmpty()) {
+            Log.d(TAG, "📴 Modo OFFLINE - Guardando venta");
+            repository.registrarVentaOffline(
+                productoVendido.getId(),
+                productoVendido.getNombre(),
+                fotoUrl,
+                cantidadVendida,
+                precioVenta
+            );
+            actualizarStockLocal(productoVendido, cantidadVendida);
+            mostrarOverlayExito(productoVendido, cantidadVendida, precioVenta * cantidadVendida);
+            return;
+        }
+
+        VentaRequest request = new VentaRequest(
+            productoVendido.getId(),
+            cantidadVendida,
+            precioVenta
+        );
+
+        ApiService apiService = RetrofitClient.getInstance(getContext()).getApiService();
+        
+        apiService.registrarVenta("Bearer " + token, request).enqueue(new Callback<VentaResponse>() {
+            @Override
+            public void onResponse(Call<VentaResponse> call, Response<VentaResponse> response) {
+                try {
+                    Log.d(TAG, "📥 Respuesta recibida - Código: " + response.code());
+                    
+                    if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                        Log.d(TAG, "✅ Venta exitosa en servidor");
+                        actualizarStockLocal(productoVendido, cantidadVendida);
+                        mostrarOverlayExito(productoVendido, cantidadVendida, precioVenta * cantidadVendida);
+                        notificarDashboard();
+                    } else {
+                        Log.w(TAG, "⚠️ Servidor no disponible, guardando offline");
+                        repository.registrarVentaOffline(
+                            productoVendido.getId(),
+                            productoVendido.getNombre(),
+                            fotoUrl,
+                            cantidadVendida,
+                            precioVenta
+                        );
+                        actualizarStockLocal(productoVendido, cantidadVendida);
+                        mostrarOverlayExito(productoVendido, cantidadVendida, precioVenta * cantidadVendida);
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error en onResponse: " + e.getMessage());
+                    repository.registrarVentaOffline(
+                        productoVendido.getId(),
+                        productoVendido.getNombre(),
+                        fotoUrl,
+                        cantidadVendida,
+                        precioVenta
+                    );
+                    actualizarStockLocal(productoVendido, cantidadVendida);
+                    mostrarOverlayExito(productoVendido, cantidadVendida, precioVenta * cantidadVendida);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<VentaResponse> call, Throwable t) {
+                Log.e(TAG, "❌ onFailure: " + t.getMessage());
+                repository.registrarVentaOffline(
+                    productoVendido.getId(),
+                    productoVendido.getNombre(),
+                    fotoUrl,
+                    cantidadVendida,
+                    precioVenta
+                );
+                actualizarStockLocal(productoVendido, cantidadVendida);
+                mostrarOverlayExito(productoVendido, cantidadVendida, precioVenta * cantidadVendida);
+                logger.networkError(t);
+            }
+        });
+    }
+
+    private void actualizarStockLocal(Producto producto, int cantidadVendida) {
+        int nuevoStock = producto.getStock() - cantidadVendida;
+        producto.setStock(nuevoStock);
+        repository.actualizarStockLocal(producto.getId(), nuevoStock);
+        Log.d(TAG, "✅ Stock actualizado: " + producto.getNombre() + " → " + nuevoStock);
+    }
+
+    private void notificarDashboard() {
+        if (getActivity() != null) {
+            Fragment fragment = getActivity()
+                .getSupportFragmentManager()
+                .findFragmentByTag("dashboard");
+            
+            if (fragment instanceof DashboardFragment) {
+                DashboardFragment dashboard = (DashboardFragment) fragment;
+                dashboard.actualizarDesdeVenta();
+                Log.d(TAG, "✅ Dashboard notificado");
+            }
+        }
+    }
+
+    private void mostrarOverlayExito(Producto producto, int cantidad, double total) {
+        Log.d(TAG, "🎉 Mostrando overlay de éxito");
+        
+        try {
+            if (getActivity() == null) {
+                Log.e(TAG, "❌ getActivity() es null");
+                Toast.makeText(getContext(), "✅ Venta: " + producto.getNombre() + " x" + cantidad, Toast.LENGTH_SHORT).show();
+                resetUIAfterSale();
+                return;
+            }
+
+            ViewGroup rootView = (ViewGroup) getActivity().findViewById(android.R.id.content);
+            
+            if (rootView == null) {
+                Log.e(TAG, "❌ rootView es null");
+                Toast.makeText(getContext(), "✅ Venta: " + producto.getNombre() + " x" + cantidad, Toast.LENGTH_SHORT).show();
+                resetUIAfterSale();
+                return;
+            }
+            
+            View overlay = getLayoutInflater().inflate(R.layout.overlay_venta_exitosa, null);
+            
+            TextView tvProducto = overlay.findViewById(R.id.tv_producto_venta);
+            TextView tvCantidad = overlay.findViewById(R.id.tv_cantidad_venta);
+            TextView tvTotal = overlay.findViewById(R.id.tv_total_venta);
+            Button btnCerrar = overlay.findViewById(R.id.btn_cerrar_venta);
+            
+            tvProducto.setText(producto.getNombre());
+            tvCantidad.setText("× " + cantidad);
+            tvTotal.setText("$" + String.format("%.2f", total));
+            
+            rootView.addView(overlay);
+            
+            overlay.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.anim_venta_exitosa));
+            
+            View circuloExterior = overlay.findViewById(R.id.v_circulo_exterior);
+            if (circuloExterior != null) {
+                circuloExterior.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.anim_pulso));
+            }
+            
+            if (vibrator != null) {
+                vibrator.vibrate(100);
+            }
+            
+            btnCerrar.setOnClickListener(v -> {
+                overlay.animate()
+                    .alpha(0f)
+                    .setDuration(300)
+                    .withEndAction(() -> rootView.removeView(overlay))
+                    .start();
+                
+                resetUIAfterSale();
+            });
+            
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                if (overlay.getParent() != null) {
+                    overlay.animate()
+                        .alpha(0f)
+                        .setDuration(300)
+                        .withEndAction(() -> rootView.removeView(overlay))
+                        .start();
+                    resetUIAfterSale();
+                }
+            }, 2500);
+            
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Error mostrando overlay: " + e.getMessage());
+            e.printStackTrace();
+            Toast.makeText(getContext(), "✅ Venta registrada: " + producto.getNombre() + " x" + cantidad, Toast.LENGTH_LONG).show();
+            resetUIAfterSale();
+        }
+    }
+
+    private void resetUIAfterSale() {
+        quantity = 1;
+        selectedProduct = null;
+        etSearchProduct.setText("");
+        updateUI();
+        cargarVentasPendientes();
+        notificarDashboard();
+        Log.d(TAG, "✅ UI reseteada después de venta");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (isAdded()) {
+            cargarVentasPendientes();
+        }
+    }
+}

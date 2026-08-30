@@ -1,0 +1,84 @@
+name: Build Android App (Production)
+  
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Fix layout errors (if needed)
+        run: |
+          echo "🔧 Verificando y corrigiendo archivos de layout si es necesario..."
+          
+          # Asegurar que fragment_dashboard.xml tenga SwipeRefreshLayout
+          if [ -f "android-app/app/src/main/res/layout/fragment_dashboard.xml" ]; then
+            echo "✅ fragment_dashboard.xml existe"
+          else
+            echo "❌ fragment_dashboard.xml no encontrado"
+            exit 1
+          fi
+          
+          # Verificar que existen los archivos principales
+          if [ -f "android-app/app/build.gradle" ]; then
+            echo "✅ app/build.gradle existe"
+          else
+            echo "❌ app/build.gradle no encontrado"
+            exit 1
+          fi
+
+      - name: Grant execute permission for gradlew
+        run: |
+          cd android-app
+          chmod +x gradlew
+
+      - name: Build Debug APK
+        run: |
+          cd android-app
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: android-app/app/build/outputs/apk/debug/*.apk
+
+      - name: Build Release APK
+        run: |
+          cd android-app
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: android-app/app/build/outputs/apk/release/*.apk
+
+      - name: Notify success
+        if: success()
+        run: |
+          echo "🚀 APK DE PRODUCCIÓN COMPILADOS EXITOSAMENTE!"
+          echo ""
+          echo "📱 Usando archivos existentes en android-app/"
+          echo ""
+          echo "📥 Descarga los APKs desde los artifacts de esta ejecución"
