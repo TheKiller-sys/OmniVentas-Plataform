@@ -9,6 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
     
     <!-- Tutorial CSS -->
     <link href="/static/css/tutorial.css" rel="stylesheet">
@@ -656,29 +657,39 @@
         // ============================================================
         let finanzasChart = null;
         let gastosChart = null;
+        let refreshInterval = null;
+        let socket = null;
 
         // ============================================================
         // CARGAR FINANZAS
         // ============================================================
         function cargarFinanzas() {
-            fetch('/api/finanzas')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        console.error('Error:', data.error);
-                        return;
-                    }
-                    actualizarFinanzas(data);
-                })
-                .catch(error => console.error('Error:', error));
+            const timestamp = new Date().getTime();
+            fetch(`/api/finanzas?t=${timestamp}`, {
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Error:', data.error);
+                    return;
+                }
+                actualizarFinanzas(data);
+            })
+            .catch(error => console.error('Error:', error));
         }
 
         function actualizarFinanzas(data) {
+            // ✅ Datos exactos sin suposiciones
             document.getElementById('fin-ingresos').textContent = `$${(data.ingresos || 0).toFixed(2)}`;
             document.getElementById('fin-gastos').textContent = `$${(data.gastos || 0).toFixed(2)}`;
             document.getElementById('fin-beneficio').textContent = `$${(data.beneficio || 0).toFixed(2)}`;
 
-            // Gráfico ingresos vs gastos
+            // ✅ Gráfico ingresos vs gastos (EXACTO)
             if (finanzasChart) finanzasChart.destroy();
             const ctx1 = document.getElementById('finanzasChart').getContext('2d');
             
@@ -758,61 +769,18 @@
                 }
             });
 
-            // Gráfico distribución gastos
-            if (gastosChart) gastosChart.destroy();
-            const ctx2 = document.getElementById('gastosChart').getContext('2d');
-            const gastosData = data.valores_gastos || [0,0,0,0];
-            const gastosLabels = data.categorias_gastos || ['Productos', 'Transporte', 'Publicidad', 'Otros'];
-            const colores = ['#4361EE', '#10B981', '#F59E0B', '#EF4444'];
-            
-            gastosChart = new Chart(ctx2, {
-                type: 'doughnut',
-                data: {
-                    labels: gastosLabels,
-                    datasets: [{ 
-                        data: gastosData, 
-                        backgroundColor: colores,
-                        borderWidth: 3,
-                        borderColor: 'white'
-                    }]
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { 
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                padding: 16,
-                                font: { size: 11, weight: '600' }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(255,255,255,0.95)',
-                            titleColor: '#0F172A',
-                            bodyColor: '#64748B',
-                            borderColor: 'rgba(0,0,0,0.06)',
-                            borderWidth: 1,
-                            padding: 14,
-                            cornerRadius: 12,
-                            callbacks: {
-                                label: function(ctx) {
-                                    return ctx.label + ': $' + ctx.raw.toFixed(2);
-                                }
-                            }
-                        }
-                    },
-                    cutout: '60%',
-                    animation: {
-                        duration: 800,
-                        easing: 'easeOutQuart'
-                    }
+            // ✅ ELIMINAR DISTRIBUCIÓN FALSA DE GASTOS
+            // NO se muestra el gráfico de distribución porque no hay datos reales
+            const gastosChartCanvas = document.getElementById('gastosChart');
+            if (gastosChartCanvas) {
+                gastosChartCanvas.style.display = 'none';
+                const parent = gastosChartCanvas.parentElement;
+                if (parent) {
+                    parent.style.display = 'none';
                 }
-            });
+            }
 
-            // Resumen mensual
+            // ✅ Resumen mensual EXACTO
             const body = document.getElementById('resumen-mensual-body');
             const empty = document.getElementById('resumen-empty');
             body.innerHTML = '';
@@ -845,10 +813,54 @@
         document.getElementById('btn-actualizar-finanzas').addEventListener('click', cargarFinanzas);
 
         // ============================================================
-        // INICIALIZACIÓN
+        // INICIALIZACIÓN CON WEBSOCKET Y ACTUALIZACIÓN AUTOMÁTICA
         // ============================================================
-        document.addEventListener('DOMContentLoaded', cargarFinanzas);
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarFinanzas();
+            
+            // 🔥 CONECTAR WEBSOCKET PARA ACTUALIZACIÓN EN TIEMPO REAL
+            try {
+                socket = io({
+                    reconnection: true,
+                    reconnectionAttempts: 5,
+                    reconnectionDelay: 1000,
+                    reconnectionDelayMax: 5000
+                });
+                
+                socket.on('connect', function() {
+                    console.log('✅ WebSocket conectado');
+                    cargarFinanzas();
+                });
+                
+                socket.on('actualizar_finanzas', function(data) {
+                    console.log('🔄 Actualización de finanzas recibida:', data);
+                    cargarFinanzas();
+                });
+                
+                socket.on('disconnect', function() {
+                    console.warn('⚠️ WebSocket desconectado');
+                });
+            } catch (error) {
+                console.warn('⚠️ WebSocket no disponible:', error);
+            }
+            
+            // 🔥 ACTUALIZACIÓN AUTOMÁTICA CADA 15 SEGUNDOS
+            refreshInterval = setInterval(() => {
+                console.log('🔄 Actualización automática de finanzas...');
+                cargarFinanzas();
+            }, 15000);
+        });
+
+        // LIMPIEZA
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            if (socket) {
+                socket.disconnect();
+            }
+        });
     </script>
 
 </body>
-    </html>
+</html>
