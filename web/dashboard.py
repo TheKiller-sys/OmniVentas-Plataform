@@ -1563,6 +1563,8 @@ def create_app():
         try:
             db = get_business_db_connection(current_user.business_id)
             is_postgres = 'RENDER' in os.environ and os.environ.get('DATABASE_URL')
+        
+        # ✅ Obtener ingresos mensuales exactos
             if is_postgres:
                 query_ingresos = """
                     SELECT to_char(fecha, 'YYYY-MM') as mes, COALESCE(SUM(cantidad * precio_venta), 0) as total
@@ -1584,11 +1586,12 @@ def create_app():
             ingresos_mensuales = db.execute_query(query_ingresos)
             meses = []
             ingresos = []
-            gastos = []
             if ingresos_mensuales:
                 for row in reversed(ingresos_mensuales):
                     meses.append(row[0])
                     ingresos.append(float(row[1]) if row[1] else 0)
+        
+        # ✅ Obtener gastos mensuales exactos (compra + transporte)
             if is_postgres:
                 query_gastos = """
                     SELECT to_char(fecha, 'YYYY-MM') as mes, COALESCE(SUM(cantidad * (precio_compra + COALESCE(costo_transporte, 0))), 0) as total
@@ -1608,24 +1611,25 @@ def create_app():
                     LIMIT 6
                 """
             gastos_mensuales = db.execute_query(query_gastos)
+            gastos = []
             if gastos_mensuales:
                 gastos = [float(row[1]) if row[1] else 0 for row in reversed(gastos_mensuales)]
+        
+        # Asegurar que las listas tengan la misma longitud
             while len(gastos) < len(ingresos):
                 gastos.append(0)
+        
             total_ingresos = sum(ingresos)
             total_gastos = sum(gastos)
+        
+        # ✅ NO asumir distribución de gastos
             return jsonify({
                 'ingresos': total_ingresos,
                 'gastos': total_gastos,
                 'beneficio': total_ingresos - total_gastos,
                 'meses': meses,
                 'ingresos_mensuales': ingresos,
-                'gastos_mensuales': gastos,
-                'categorias_gastos': ['Productos', 'Transporte', 'Publicidad', 'Otros'],
-                'valores_gastos': [total_gastos * 0.6 if total_gastos > 0 else 0, 
-                                  total_gastos * 0.2 if total_gastos > 0 else 0, 
-                                  total_gastos * 0.15 if total_gastos > 0 else 0, 
-                                  total_gastos * 0.05 if total_gastos > 0 else 0]
+                'gastos_mensuales': gastos
             })
         except Exception as e:
             logger.error(f"Error en api_finanzas: {str(e)}")
