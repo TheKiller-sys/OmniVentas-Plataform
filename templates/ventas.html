@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
     
     <!-- Tutorial CSS -->
     <link href="/static/css/tutorial.css" rel="stylesheet">
@@ -735,7 +736,27 @@
         });
 
         // ============================================================
-        // FUNCIONES PRINCIPALES
+        // VARIABLES
+        // ============================================================
+        let refreshInterval = null;
+        let socket = null;
+
+        // ============================================================
+        // ACTUALIZAR TIMESTAMP
+        // ============================================================
+        function updateTimestamp() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+            // No hay timestamp en la página de ventas, pero lo dejamos por compatibilidad
+            console.log('🔄 Ventas actualizado a las:', timeStr);
+        }
+
+        // ============================================================
+        // CARGAR VENTAS
         // ============================================================
         function cargarVentas() {
             const inicio = document.getElementById('fecha-inicio').value;
@@ -747,16 +768,25 @@
             if (fin) url += `fecha_fin=${fin}&`;
             if (producto) url += `producto=${encodeURIComponent(producto)}&`;
 
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        console.error('Error:', data.error);
-                        return;
-                    }
-                    actualizarVentas(data);
-                })
-                .catch(error => console.error('Error:', error));
+            const timestamp = new Date().getTime();
+            url += `t=${timestamp}`;
+
+            fetch(url, {
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Error:', data.error);
+                    return;
+                }
+                actualizarVentas(data);
+            })
+            .catch(error => console.error('Error:', error));
         }
 
         function actualizarVentas(data) {
@@ -926,6 +956,10 @@
                     alert('✅ Venta registrada exitosamente!');
                     modalVenta.hide();
                     cargarVentas();
+                    // 🔥 Notificar al servidor para que emita evento WebSocket
+                    if (socket && socket.connected) {
+                        socket.emit('venta_registrada', { producto_id: productoId });
+                    }
                 } else {
                     alert('❌ Error: ' + data.message);
                 }
@@ -936,32 +970,61 @@
         });
 
         // ============================================================
-        // INICIALIZACIÓN
+        // INICIALIZACIÓN CON WEBSOCKET Y ACTUALIZACIÓN AUTOMÁTICA
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
-            // 🔥 NUEVO: Enviar zona horaria del dispositivo
-            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            fetch('/api/set-timezone', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ timezone: timezone })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log('✅ Zona horaria configurada:', timezone);
-                }
-            })
-            .catch(error => console.error('Error configurando zona horaria:', error));
-            
             const hoy = new Date().toISOString().split('T')[0];
             const mes = new Date();
             mes.setMonth(mes.getMonth() - 1);
             document.getElementById('fecha-inicio').value = mes.toISOString().split('T')[0];
             document.getElementById('fecha-fin').value = hoy;
+            
+            // Cargar datos iniciales
             cargarVentas();
+            
+            // 🔥 CONECTAR WEBSOCKET PARA ACTUALIZACIÓN EN TIEMPO REAL
+            try {
+                socket = io({
+                    reconnection: true,
+                    reconnectionAttempts: 5,
+                    reconnectionDelay: 1000,
+                    reconnectionDelayMax: 5000
+                });
+                
+                socket.on('connect', function() {
+                    console.log('✅ WebSocket conectado');
+                    cargarVentas();
+                });
+                
+                socket.on('actualizar_ventas', function(data) {
+                    console.log('🔄 Actualización de ventas recibida:', data);
+                    cargarVentas();
+                });
+                
+                socket.on('disconnect', function() {
+                    console.warn('⚠️ WebSocket desconectado');
+                });
+            } catch (error) {
+                console.warn('⚠️ WebSocket no disponible:', error);
+            }
+            
+            // 🔥 ACTUALIZACIÓN AUTOMÁTICA CADA 15 SEGUNDOS
+            refreshInterval = setInterval(() => {
+                console.log('🔄 Actualización automática de ventas...');
+                cargarVentas();
+            }, 15000);
+        });
+
+        // LIMPIEZA
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            if (socket) {
+                socket.disconnect();
+            }
         });
     </script>
 
 </body>
-        </html>
+</html>
