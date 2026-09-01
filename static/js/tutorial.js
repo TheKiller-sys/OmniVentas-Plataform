@@ -1,13 +1,10 @@
 /**
- * OmniVentas - Tutorial Profesional
+ * OmniVentas - Tutorial Profesional (CORREGIDO CON SERVIDOR)
  * Guía interactiva detallada de toda la plataforma
  * 
- * Características:
- * - Explicación detallada de cada funcionalidad
- * - Diseño premium con animaciones
- * - Navegación fluida entre pasos
- * - Persistencia del progreso
- * - Botón "Ver Tutorial" en todas las páginas
+ * ✅ CORREGIDO: El estado se guarda en el SERVIDOR, no en localStorage
+ * ✅ CORREGIDO: Solo se muestra en la primera sesión del usuario
+ * ✅ CORREGIDO: No se vuelve a mostrar en futuras sesiones (ni en otros navegadores)
  * 
  * Uso:
  *   OmniTutorial.start()  - Iniciar el tutorial
@@ -19,7 +16,7 @@
     'use strict';
 
     // ============================================================
-    // CONFIGURACIÓN DE PASOS POR PÁGINA - MUY DETALLADA
+    // CONFIGURACIÓN DE PASOS POR Página - MUY DETALLADA
     // ============================================================
     const TUTORIAL_STEPS = {
         '/dashboard': [
@@ -1036,6 +1033,7 @@
     let currentSteps = [];
     let currentPage = '';
     let totalSteps = 0;
+    let tutorialCompletadoServidor = false;
 
     // ============================================================
     // CREAR ELEMENTOS DEL TUTORIAL
@@ -1123,6 +1121,42 @@
             }
         }
         return 'OmniVentas';
+    }
+
+    // ✅ FUNCIÓN PARA OBTENER ESTADO DEL SERVIDOR
+    function obtenerEstadoTutorial(callback) {
+        fetch('/api/tutorial-estado')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    tutorialCompletadoServidor = data.tutorial_completado;
+                    console.log('📊 Tutorial completado en servidor:', tutorialCompletadoServidor);
+                }
+                if (callback) callback();
+            })
+            .catch(error => {
+                console.error('Error obteniendo estado tutorial:', error);
+                if (callback) callback();
+            });
+    }
+
+    // ✅ FUNCIÓN PARA MARCAR COMO COMPLETADO EN EL SERVIDOR
+    function marcarCompletadoServidor() {
+        fetch('/api/tutorial-completar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('✅ Tutorial marcado como completado en el servidor');
+            } else {
+                console.warn('⚠️ Error marcando tutorial en servidor:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error marcando tutorial en servidor:', error);
+        });
     }
 
     function startTutorial() {
@@ -1245,9 +1279,8 @@
             el.classList.remove('tutorial-highlight');
         });
 
-        const key = `omniventas_tutorial_${currentPage}`;
-        localStorage.setItem(key, 'true');
-        localStorage.setItem('omniventas_tutorial_complete', 'true');
+        // ✅ Guardar en servidor (NO en localStorage)
+        marcarCompletadoServidor();
         
         // Feedback
         console.log('✅ Tutorial completado para:', currentPage);
@@ -1258,10 +1291,7 @@
     }
 
     function resetTutorial() {
-        const path = window.location.pathname;
-        const key = `omniventas_tutorial_${path}`;
-        localStorage.removeItem(key);
-        localStorage.removeItem('omniventas_tutorial_complete');
+        // ✅ Reiniciar: NO borrar del servidor, solo mostrar de nuevo
         startTutorial();
     }
 
@@ -1332,20 +1362,18 @@
         initTutorialEvents();
         addTutorialButton();
 
-        // Verificar si el tutorial debe iniciar automáticamente
-        const path = window.location.pathname;
-        const key = `omniventas_tutorial_${path}`;
-        const completed = localStorage.getItem(key) === 'true';
-        const globalComplete = localStorage.getItem('omniventas_tutorial_complete') === 'true';
+        // ✅ Verificar estado en el SERVIDOR
+        obtenerEstadoTutorial(function() {
+            const path = window.location.pathname;
+            const completed = tutorialCompletadoServidor;
 
-        // En dashboard, iniciar si no está completado globalmente
-        if (path === '/dashboard' && !globalComplete) {
-            setTimeout(startTutorial, 1200);
-        } 
-        // En otras páginas, iniciar si no tiene tutorial completado para esa página
-        else if (!completed && getStepsForPage(path)) {
-            setTimeout(startTutorial, 1200);
-        }
+            // Solo mostrar tutorial si NO está completado en el servidor
+            if (!completed && getStepsForPage(path)) {
+                setTimeout(startTutorial, 1200);
+            } else {
+                console.log('📖 Tutorial ya completado en servidor, no se mostrará');
+            }
+        });
     }
 
     // ============================================================
