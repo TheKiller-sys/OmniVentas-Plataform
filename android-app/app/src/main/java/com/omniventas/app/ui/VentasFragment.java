@@ -431,7 +431,20 @@ public class VentasFragment extends Fragment {
                         mostrarOverlayExito(productoVendido, cantidadVendida, precioVenta * cantidadVendida);
                         notificarDashboard();
                     } else {
-                        Log.w(TAG, "⚠️ Servidor no disponible, guardando offline");
+                        // 🔥 CORREGIDO: Si el servidor rechaza, guardar OFFLINE para reintentar
+                        String errorMsg = response.body() != null ? response.body().getMessage() : "Error del servidor";
+                        Log.w(TAG, "⚠️ Servidor rechazó venta: " + errorMsg);
+                        
+                        // Si es error de stock, NO guardar offline (no se podrá completar)
+                        if (response.code() == 400 && errorMsg.contains("stock")) {
+                            Toast.makeText(getContext(), "❌ Stock insuficiente", Toast.LENGTH_LONG).show();
+                            if (vibrator != null) {
+                                vibrator.vibrate(200);
+                            }
+                            return;
+                        }
+                        
+                        // Guardar offline para reintentar
                         repository.registrarVentaOffline(
                             productoVendido.getId(),
                             productoVendido.getNombre(),
@@ -441,6 +454,7 @@ public class VentasFragment extends Fragment {
                         );
                         actualizarStockLocal(productoVendido, cantidadVendida);
                         mostrarOverlayExito(productoVendido, cantidadVendida, precioVenta * cantidadVendida);
+                        Toast.makeText(getContext(), "💾 Guardada para reintentar", Toast.LENGTH_SHORT).show();
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Error en onResponse: " + e.getMessage());
