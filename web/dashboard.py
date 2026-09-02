@@ -19,6 +19,34 @@ import traceback
 import uuid
 import pytz
 from werkzeug.utils import secure_filename
+from datetime import datetime
+
+def convertir_fecha_local(fecha_utc, timezone_str='UTC'):
+    """Convertir fecha UTC a hora local del usuario"""
+    try:
+        if fecha_utc is None:
+            return None
+        if isinstance(fecha_utc, str):
+            # Si es string, convertir a datetime
+            try:
+                fecha_utc = datetime.fromisoformat(fecha_utc.replace('Z', '+00:00'))
+            except:
+                return fecha_utc
+        
+        # Si no tiene zona horaria, asumir UTC
+        if fecha_utc.tzinfo is None:
+            fecha_utc = fecha_utc.replace(tzinfo=pytz.UTC)
+        
+        # Convertir a la zona horaria del usuario
+        try:
+            tz = pytz.timezone(timezone_str)
+        except:
+            tz = pytz.timezone('UTC')
+        
+        return fecha_utc.astimezone(tz)
+    except Exception as e:
+        logger.error(f"Error convirtiendo fecha: {e}")
+        return fecha_utc
 
 logger = logging.getLogger(__name__)
 
