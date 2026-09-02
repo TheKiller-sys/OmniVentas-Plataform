@@ -18,7 +18,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- 🔥 NUEVO: HEADER CON DISEÑO PREMIUM -->
+            <!-- 🔥 HEADER CON DISEÑO PREMIUM (SIN "EN VIVO") -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -53,7 +53,7 @@
                                 android:layout_gravity="center" />
                         </FrameLayout>
 
-                        <!-- 🔥 CORREGIDO: Texto horizontal y completo -->
+                        <!-- ✅ Texto horizontal y completo -->
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -65,20 +65,7 @@
                             android:letterSpacing="0.3"
                             android:layout_marginStart="12dp" />
 
-                        <View
-                            android:layout_width="8dp"
-                            android:layout_height="8dp"
-                            android:background="@drawable/bg_pulse"
-                            android:layout_marginEnd="8dp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="EN VIVO"
-                            android:textSize="10sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/white"
-                            android:letterSpacing="1" />
+                        <!-- ❌ ELIMINADO: View (punto verde) y TextView "EN VIVO" -->
                     </LinearLayout>
 
                     <!-- Título principal -->
@@ -127,7 +114,7 @@
                 android:layout_marginBottom="12dp"
                 android:visibility="gone" />
 
-            <!-- Tarjeta En Vivo -->
+            <!-- Tarjeta Ingresos de Hoy (MANTIENE punto verde) -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
