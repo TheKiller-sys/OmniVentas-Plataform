@@ -40,8 +40,11 @@ import com.omniventas.app.repository.OmniVentasRepository;
 import com.omniventas.app.utils.ImageLoader;
 import com.omniventas.app.utils.SessionManager;
 import com.omniventas.app.utils.TelegramLogger;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -84,10 +87,10 @@ public class VentasFragment extends Fragment {
             tvLivePercent = view.findViewById(R.id.tv_live_percent);
             tvProductName = view.findViewById(R.id.tv_product_name);
             tvProductSeccion = view.findViewById(R.id.tv_product_seccion);
-            tvProductDescription = view.findViewById(R.id.tv_product_description);  // ✅ AHORA EXISTE
+            tvProductDescription = view.findViewById(R.id.tv_product_description);
             tvUnitPrice = view.findViewById(R.id.tv_unit_price);
             tvQuantity = view.findViewById(R.id.tv_quantity);
-            tvDiscount = view.findViewById(R.id.tv_discount);  // ✅ AHORA EXISTE
+            tvDiscount = view.findViewById(R.id.tv_discount);
             tvSubtotal = view.findViewById(R.id.tv_subtotal);
             tvPendientesCount = view.findViewById(R.id.tv_pendientes_count);
             btnDecreaseQty = view.findViewById(R.id.btn_decrease_qty);
@@ -410,6 +413,9 @@ public class VentasFragment extends Fragment {
             cantidadVendida,
             precioVenta
         );
+        
+        // 🔥 CORREGIDO: Enviar zona horaria del dispositivo
+        request.setTimezone(TimeZone.getDefault().getID());
 
         ApiService apiService = RetrofitClient.getInstance(getContext()).getApiService();
         
