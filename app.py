@@ -102,7 +102,7 @@ def log_to_telegram_web(level, message, data=None, user=None, business_id=None, 
             'CRITICAL': '🔥'
         }.get(level, '📱')
         
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         lines = [
             f"{emoji} [{level}] OMNIVENTAS LOG",
@@ -400,7 +400,7 @@ def send_log_to_telegram():
         log_level = data.get('level', 'INFO')
         log_message = data.get('message', '')
         log_data = data.get('data', {})
-        timestamp = data.get('timestamp', datetime.datetime.now().isoformat())
+        timestamp = data.get('timestamp', datetime.now().isoformat())
         vendor_id = data.get('vendor_id', 'DESCONOCIDO')
         vendor_name = data.get('vendor_name', 'DESCONOCIDO')
         business_name = data.get('business_name', 'DESCONOCIDO')
@@ -492,7 +492,7 @@ def test_log_endpoint():
             'app_version': '1.0',
             'device_model': 'Server',
             'android_version': 'N/A',
-            'timestamp': datetime.datetime.now().isoformat(),
+            'timestamp': datetime.now().isoformat(),
             'data': {'test': True, 'endpoint': '/api/test-log'}
         }
         
@@ -711,7 +711,7 @@ def login_vendedor():
             'business_id': business_id,
             'name': vendor_name,
             'role': vendor_role,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7)
+            'exp': datetime.utcnow() + timedelta(days=7)
         }, os.environ.get('JWT_SECRET', 'secret-key'), algorithm='HS256')
         
         log_to_telegram(
@@ -1986,7 +1986,7 @@ def test_endpoint():
     response = jsonify({
         'success': True,
         'message': 'Test endpoint working',
-        'timestamp': datetime.datetime.now().isoformat()
+        'timestamp': datetime.now().isoformat()
     })
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
@@ -2004,7 +2004,7 @@ def diagnostico():
         'python_version': sys.version,
         'platform': platform.platform(),
         'telegram_configured': bool(TELEGRAM_BOT_TOKEN and TELEGRAM_ADMIN_CHAT_ID),
-        'timestamp': datetime.datetime.now().isoformat(),
+        'timestamp': datetime.now().isoformat(),
         'endpoints_disponibles': [
             '/api/login-vendedor',
             '/api/productos',
