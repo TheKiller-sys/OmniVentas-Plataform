@@ -832,7 +832,7 @@ def get_productos():
 @app.route('/api/registrar-venta', methods=['POST', 'OPTIONS'])
 @token_required
 def registrar_venta_app():
-    """Registrar venta DESDE LA APP ANDROID"""
+    """Registrar venta DESDE LA APP ANDROID - CORREGIDO CON ZONA HORARIA"""
     if request.method == 'OPTIONS':
         response = jsonify({'success': True})
         response.headers.add('Access-Control-Allow-Origin', '*')
@@ -857,6 +857,9 @@ def registrar_venta_app():
         cantidad = data.get('cantidad')
         precio_unitario = data.get('precio_unitario')
         
+        # 🔥 CORREGIDO: Obtener zona horaria del dispositivo
+        timezone_str = data.get('timezone', 'UTC')
+        
         if producto_id is None:
             return jsonify({'success': False, 'message': 'Campo producto_id requerido'}), 400
         if cantidad is None:
@@ -872,16 +875,10 @@ def registrar_venta_app():
             return jsonify({'success': False, 'message': f'Error en formato de datos: {str(e)}'}), 400
         
         if not hasattr(g, 'user_id') or not g.user_id:
-            return jsonify({
-                'success': False,
-                'message': 'El token no contiene user_id. Contacta al administrador.'
-            }), 401
+            return jsonify({'success': False, 'message': 'El token no contiene user_id. Contacta al administrador.'}), 401
         
         if not str(g.user_id).isdigit():
-            return jsonify({
-                'success': False,
-                'message': 'user_id inválido en el token'
-            }), 401
+            return jsonify({'success': False, 'message': 'user_id inválido en el token'}), 401
         
         from database.db_manager import DatabaseManager
         db = DatabaseManager(g.business_id)
@@ -906,6 +903,14 @@ def registrar_venta_app():
                 'message': f'Stock insuficiente. Disponible: {stock_disponible}',
                 'stock_disponible': stock_disponible
             }), 400
+        
+        # 🔥 CORREGIDO: Obtener fecha y hora LOCAL del dispositivo
+        try:
+            device_tz = pytz.timezone(timezone_str)
+        except:
+            device_tz = pytz.timezone('UTC')
+        
+        fecha_venta = datetime.now(device_tz)
         
         # Asegurar columna vendor_id
         if is_postgres:
@@ -936,22 +941,23 @@ def registrar_venta_app():
                 except Exception as e2:
                     logger.error(f"Error agregando vendor_id (fallback): {e2}")
         
-        # Registrar venta
+        # 🔥 CORREGIDO: Registrar venta con fecha LOCAL
         if is_postgres:
             insert_query = """
-                INSERT INTO ventas (producto_id, cantidad, usuario_id, vendor_id) 
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO ventas (producto_id, cantidad, usuario_id, vendor_id, fecha) 
+                VALUES (%s, %s, %s, %s, %s)
             """
         else:
             insert_query = """
-                INSERT INTO ventas (producto_id, cantidad, usuario_id, vendor_id) 
-                VALUES (?, ?, ?, ?)
+                INSERT INTO ventas (producto_id, cantidad, usuario_id, vendor_id, fecha) 
+                VALUES (?, ?, ?, ?, ?)
             """
         db.execute_query(insert_query, (
             producto_id, 
             cantidad, 
             g.user_id,
-            g.vendor_id
+            g.vendor_id,
+            fecha_venta
         ))
         
         # Actualizar stock
@@ -965,7 +971,7 @@ def registrar_venta_app():
         
         log_to_telegram(
             level='SUCCESS',
-            message=f"✅ NUEVA VENTA desde App Android",
+            message=f"✅ NUEVA VENTA desde App Android (hora local: {fecha_venta})",
             data={
                 'vendedor_id': g.vendor_id,
                 'vendedor_nombre': g.vendor_name if hasattr(g, 'vendor_name') else 'N/A',
@@ -975,7 +981,9 @@ def registrar_venta_app():
                 'cantidad': cantidad,
                 'precio_unitario': precio_unitario,
                 'total': total,
-                'stock_restante': stock_disponible - cantidad
+                'stock_restante': stock_disponible - cantidad,
+                'timezone': timezone_str,
+                'fecha_local': fecha_venta.strftime('%Y-%m-%d %H:%M:%S')
             },
             business_id=g.business_id,
             request_info=request_info
@@ -991,7 +999,8 @@ def registrar_venta_app():
                 'precio_unitario': precio_unitario,
                 'total': total
             },
-            'stock_restante': stock_disponible - cantidad
+            'stock_restante': stock_disponible - cantidad,
+            'fecha': fecha_venta.strftime('%Y-%m-%d %H:%M:%S')
         })
         
     except Exception as e:
