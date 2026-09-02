@@ -1,5 +1,6 @@
 # app.py - Aplicación principal SIN bot de Telegram por negocio (CORREGIDO)
 import os
+import pytz
 from flask import Flask, g, jsonify, request, session, send_file
 import logging
 from flask_socketio import SocketIO
@@ -880,6 +881,9 @@ def registrar_venta_app():
         if not str(g.user_id).isdigit():
             return jsonify({'success': False, 'message': 'user_id inválido en el token'}), 401
         
+        # 🔥 CORREGIDO: Convertir user_id a entero
+        user_id_int = int(g.user_id)
+        
         from database.db_manager import DatabaseManager
         db = DatabaseManager(g.business_id)
         is_postgres = 'RENDER' in os.environ and os.environ.get('DATABASE_URL')
@@ -955,7 +959,7 @@ def registrar_venta_app():
         db.execute_query(insert_query, (
             producto_id, 
             cantidad, 
-            g.user_id,
+            user_id_int,  # ✅ CORREGIDO: usar entero, no string
             g.vendor_id,
             fecha_venta
         ))
